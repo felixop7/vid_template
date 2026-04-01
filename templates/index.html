@@ -10,13 +10,13 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --gold:   #d4a843;
-      --gold2:  #f0c96b;
-      --dark:   #0d0b08;
-      --card:   #16130e;
-      --border: rgba(212,168,67,.22);
-      --text:   #f5efe0;
-      --muted:  #a89070;
+      --gold:  #d4a843;
+      --gold2: #f0c96b;
+      --dark:  #0d0b08;
+      --card:  #16130e;
+      --border:rgba(212,168,67,.22);
+      --text:  #f5efe0;
+      --muted: #a89070;
     }
 
     body {
@@ -29,38 +29,30 @@
       align-items: center;
       justify-content: center;
       padding: 24px 16px;
-      overflow-x: hidden;
     }
 
-    /* ── background grain ── */
     body::before {
       content: '';
       position: fixed; inset: 0;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
+      pointer-events: none; z-index: 0;
     }
 
     .glow {
-      position: fixed;
-      width: 600px; height: 600px;
+      position: fixed; width: 600px; height: 600px;
       border-radius: 50%;
       background: radial-gradient(circle, rgba(212,168,67,.12) 0%, transparent 70%);
-      top: -200px; left: 50%;
-      transform: translateX(-50%);
-      pointer-events: none;
-      z-index: 0;
+      top: -200px; left: 50%; transform: translateX(-50%);
+      pointer-events: none; z-index: 0;
     }
 
-    /* ── card ── */
     .card {
       position: relative; z-index: 1;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 24px;
       padding: 52px 44px 48px;
-      max-width: 480px;
-      width: 100%;
+      max-width: 480px; width: 100%;
       box-shadow: 0 32px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(212,168,67,.1);
       animation: fadeUp .7s cubic-bezier(.16,1,.3,1) both;
     }
@@ -75,20 +67,16 @@
       background: rgba(212,168,67,.12);
       border: 1px solid var(--border);
       color: var(--gold);
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      padding: 5px 14px;
-      border-radius: 100px;
+      font-size: 11px; font-weight: 500;
+      letter-spacing: .12em; text-transform: uppercase;
+      padding: 5px 14px; border-radius: 100px;
       margin-bottom: 24px;
     }
 
     h1 {
       font-family: 'Playfair Display', serif;
       font-size: clamp(2rem, 6vw, 2.8rem);
-      font-weight: 900;
-      line-height: 1.12;
+      font-weight: 900; line-height: 1.12;
       margin-bottom: 12px;
       background: linear-gradient(135deg, var(--text) 30%, var(--gold2));
       -webkit-background-clip: text;
@@ -97,39 +85,28 @@
     }
 
     .subtitle {
-      color: var(--muted);
-      font-size: .95rem;
-      line-height: 1.6;
-      margin-bottom: 38px;
+      color: var(--muted); font-size: .95rem;
+      line-height: 1.6; margin-bottom: 38px;
     }
 
-    /* ── form ── */
     label {
-      display: block;
-      font-size: .78rem;
-      font-weight: 500;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 10px;
+      display: block; font-size: .78rem; font-weight: 500;
+      letter-spacing: .08em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 10px;
     }
 
     input[type="text"] {
       width: 100%;
       background: rgba(255,255,255,.04);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 20px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1.05rem;
-      color: var(--text);
-      outline: none;
+      border-radius: 12px; padding: 16px 20px;
+      font-family: 'DM Sans', sans-serif; font-size: 1.05rem;
+      color: var(--text); outline: none;
       transition: border-color .2s, box-shadow .2s;
       margin-bottom: 24px;
     }
 
     input[type="text"]::placeholder { color: var(--muted); }
-
     input[type="text"]:focus {
       border-color: var(--gold);
       box-shadow: 0 0 0 3px rgba(212,168,67,.15);
@@ -138,36 +115,25 @@
     button[type="submit"] {
       width: 100%;
       background: linear-gradient(135deg, var(--gold), #b8891e);
-      border: none;
-      border-radius: 12px;
-      padding: 17px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1rem;
-      font-weight: 600;
-      color: #0d0b08;
-      cursor: pointer;
+      border: none; border-radius: 12px; padding: 17px;
+      font-family: 'DM Sans', sans-serif; font-size: 1rem;
+      font-weight: 600; color: #0d0b08; cursor: pointer;
       letter-spacing: .03em;
       transition: opacity .2s, transform .15s;
-      position: relative;
-      overflow: hidden;
     }
 
     button[type="submit"]:hover  { opacity: .9; transform: translateY(-1px); }
     button[type="submit"]:active { transform: translateY(0); }
+    button[type="submit"]:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
-    /* ── overlay / spinner ── */
+    /* ── overlay ── */
     #overlay {
-      display: none;
-      position: fixed; inset: 0;
+      display: none; position: fixed; inset: 0;
       background: rgba(13,11,8,.88);
       backdrop-filter: blur(6px);
-      z-index: 100;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 28px;
+      z-index: 100; flex-direction: column;
+      align-items: center; justify-content: center; gap: 28px;
     }
-
     #overlay.active { display: flex; }
 
     .spinner {
@@ -177,49 +143,46 @@
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
-
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .spinner-text {
       font-family: 'Playfair Display', serif;
-      font-size: 1.35rem;
-      color: var(--text);
-      text-align: center;
+      font-size: 1.35rem; color: var(--text); text-align: center;
     }
 
     .spinner-sub {
-      font-size: .85rem;
-      color: var(--muted);
-      text-align: center;
-      max-width: 260px;
-      line-height: 1.6;
+      font-size: .85rem; color: var(--muted);
+      text-align: center; max-width: 260px; line-height: 1.6;
     }
 
-    /* ── error msg ── */
+    /* ── progress bar ── */
+    .progress-wrap {
+      width: 260px; height: 4px;
+      background: rgba(212,168,67,.15);
+      border-radius: 4px; overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold2));
+      border-radius: 4px;
+      width: 5%;
+      transition: width 1.5s ease;
+    }
+
     #error-msg {
       display: none;
       background: rgba(220,60,60,.12);
       border: 1px solid rgba(220,60,60,.3);
-      color: #f87171;
-      border-radius: 10px;
-      padding: 12px 16px;
-      font-size: .88rem;
-      margin-top: -12px;
-      margin-bottom: 16px;
+      color: #f87171; border-radius: 10px;
+      padding: 12px 16px; font-size: .88rem;
+      margin-top: -12px; margin-bottom: 16px;
     }
 
-    /* ── divider ── */
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 36px 0 28px;
-    }
+    .divider { height: 1px; background: var(--border); margin: 36px 0 28px; }
 
     .footer-note {
-      font-size: .78rem;
-      color: var(--muted);
-      text-align: center;
-      line-height: 1.7;
+      font-size: .78rem; color: var(--muted);
+      text-align: center; line-height: 1.7;
     }
 
     @media (max-width: 480px) {
@@ -230,41 +193,96 @@
 <body>
   <div class="glow"></div>
 
-  <!-- Loading overlay -->
   <div id="overlay">
     <div class="spinner"></div>
-    <p class="spinner-text">Creating your video…</p>
-    <p class="spinner-sub">This takes about 30–60 seconds. Please keep this page open.</p>
+    <p class="spinner-text" id="overlay-title">Creating your video…</p>
+    <div class="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+    <p class="spinner-sub">This takes about 60–90 seconds. Please keep this page open.</p>
   </div>
 
   <div class="card">
     <span class="badge">✦ Exclusive Invite</span>
     <h1>Your Personal<br>Invite Video</h1>
-    <p class="subtitle">Enter your name below and we'll generate a personalised invitation video — ready to share on Instagram Stories.</p>
+    <p class="subtitle">Enter your name and we'll generate a personalised invitation video — ready to share on Instagram Stories.</p>
 
-    <form id="invite-form" method="POST" action="/generate">
+    <form id="invite-form">
       <label for="name">Your Full Name</label>
-      <input
-        type="text"
-        id="name"
-        name="name"
-        placeholder="e.g. Priya Sharma"
-        maxlength="60"
-        autocomplete="name"
-        required
-      />
+      <input type="text" id="name" name="name" placeholder="e.g. Priya Sharma"
+             maxlength="60" autocomplete="name" required />
       <div id="error-msg"></div>
-      <button type="submit">✦ Generate My Video</button>
+      <button type="submit" id="submit-btn">✦ Generate My Video</button>
     </form>
 
     <div class="divider"></div>
-    <p class="footer-note">Your video will download automatically.<br>On iPhone, tap <strong>Download</strong> in Safari's Files menu.</p>
+    <p class="footer-note">Your video will download automatically.<br>On iPhone, tap <strong>Download</strong> in Safari's menu.</p>
   </div>
 
   <script>
-    const form    = document.getElementById('invite-form');
-    const overlay = document.getElementById('overlay');
-    const errBox  = document.getElementById('error-msg');
+    const form       = document.getElementById('invite-form');
+    const overlay    = document.getElementById('overlay');
+    const errBox     = document.getElementById('error-msg');
+    const submitBtn  = document.getElementById('submit-btn');
+    const progressBar = document.getElementById('progress-bar');
+    const overlayTitle = document.getElementById('overlay-title');
+
+    let pollInterval = null;
+
+    function showError(msg) {
+      errBox.textContent = msg;
+      errBox.style.display = 'block';
+      overlay.classList.remove('active');
+      submitBtn.disabled = false;
+    }
+
+    function animateProgress() {
+      // Fake-progress the bar to ~85% over 90 seconds, then hold
+      let pct = 5;
+      const steps = [
+        { target: 30, delay: 8000 },
+        { target: 55, delay: 20000 },
+        { target: 75, delay: 40000 },
+        { target: 85, delay: 60000 },
+      ];
+      steps.forEach(({ target, delay }) => {
+        setTimeout(() => {
+          pct = target;
+          progressBar.style.width = pct + '%';
+        }, delay);
+      });
+    }
+
+    async function pollStatus(jobId, safeName) {
+      try {
+        const res  = await fetch(`/status/${jobId}`);
+        const data = await res.json();
+
+        if (data.status === 'done') {
+          clearInterval(pollInterval);
+          overlayTitle.textContent = 'Almost there…';
+          progressBar.style.width = '100%';
+
+          // Trigger download
+          setTimeout(() => {
+            const a = document.createElement('a');
+            a.href = `/download/${jobId}`;
+            a.download = `invite_${safeName}.mp4`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            overlay.classList.remove('active');
+            submitBtn.disabled = false;
+            progressBar.style.width = '5%';
+          }, 600);
+
+        } else if (data.status === 'error') {
+          clearInterval(pollInterval);
+          showError('Video generation failed. Please try again.');
+        }
+        // 'pending' → keep polling
+      } catch (e) {
+        // network hiccup — keep polling silently
+      }
+    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -273,35 +291,30 @@
       const name = document.getElementById('name').value.trim();
       if (!name) return;
 
-      // Show loading overlay
+      submitBtn.disabled = true;
       overlay.classList.add('active');
+      overlayTitle.textContent = 'Creating your video…';
+      progressBar.style.width = '5%';
+      animateProgress();
 
       try {
-        const fd = new FormData(form);
+        const fd  = new FormData(form);
         const res = await fetch('/generate', { method: 'POST', body: fd });
+        const data = await res.json();
 
-        if (!res.ok) {
-          const json = await res.json().catch(() => ({}));
-          throw new Error(json.error || 'Something went wrong. Please try again.');
+        if (!res.ok || data.error) {
+          showError(data.error || 'Something went wrong.');
+          return;
         }
 
-        // Trigger download from the blob
-        const blob = await res.blob();
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
+        const jobId    = data.job_id;
         const safeName = name.replace(/\s+/g, '_');
-        a.href     = url;
-        a.download = `invite_${safeName}.mp4`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
+
+        // Poll every 4 seconds
+        pollInterval = setInterval(() => pollStatus(jobId, safeName), 4000);
 
       } catch (err) {
-        errBox.textContent = err.message;
-        errBox.style.display = 'block';
-      } finally {
-        overlay.classList.remove('active');
+        showError('Network error. Please try again.');
       }
     });
   </script>
