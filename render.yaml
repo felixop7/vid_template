@@ -1,12 +1,11 @@
-# render.yaml  — optional: drop this in your repo root for one-click deploys
 services:
   - type: web
     name: invite-video-app
     env: python
     buildCommand: bash render-build.sh
-    startCommand: gunicorn app:app --workers 1 --timeout 120
+    startCommand: gunicorn app:app --worker-class gevent --workers 1 --timeout 300 --keep-alive 5
     envVars:
       - key: SECRET_KEY
-        generateValue: true          # Render auto-generates a secure value
+        generateValue: true
       - key: ADMIN_PASSWORD
-        sync: false                  # You set this manually in Render dashboard
+        sync: false
