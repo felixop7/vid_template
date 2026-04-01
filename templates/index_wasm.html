@@ -308,7 +308,7 @@
 
     <form id="invite-form">
       <label for="name">Your Full Name</label>
-      <input type="text" id="name" name="name" placeholder="e.g. Priya Sharma"
+      <input type="text" id="name" name="name" placeholder="e.g. Roshan Sahani"
              maxlength="60" autocomplete="name" required />
       <div id="error-msg"></div>
       <button type="submit" id="submit-btn">✦ Generate My Video</button>
@@ -319,12 +319,34 @@
   </div>
 
   <!-- FFmpeg WASM Library -->
-  <script async src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
-  <script async src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.0/dist/util.min.js"></script>
+  <script async src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
 
   <script>
-    const { FFmpeg, fetchFile } = FFmpeg;
-    const ff = new FFmpeg.FFmpeg();
+    let FFmpeg, fetchFile, ff;
+    
+    // Wait for FFmpeg library to load
+    async function waitForFFmpeg() {
+      return new Promise((resolve) => {
+        if (window.FFmpeg && window.FFmpeg.FFmpeg) {
+          FFmpeg = window.FFmpeg.FFmpeg;
+          fetchFile = window.FFmpeg.fetchFile;
+          resolve();
+        } else {
+          const checkInterval = setInterval(() => {
+            if (window.FFmpeg && window.FFmpeg.FFmpeg) {
+              FFmpeg = window.FFmpeg.FFmpeg;
+              fetchFile = window.FFmpeg.fetchFile;
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, 100);
+        }
+      });
+    }
+    
+    waitForFFmpeg().then(() => {
+      ff = new FFmpeg();
+    });
 
     // Configuration - UPDATE THESE URLs TO YOUR REPO
     const TEMPLATE_URL = "https://raw.githubusercontent.com/felixop7/vid_template/main/assets/invite_template.mp4";
@@ -349,10 +371,13 @@
         overlayTitle.textContent = 'Loading FFmpeg...';
         progressBar.style.width = '10%';
 
+        // Wait for FFmpeg library to be available
+        await waitForFFmpeg();
+
         FFmpeg.log.setLevel('warning');
         
         await ff.load({
-          coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js',
+          coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js',
         });
 
         ffmpegReady = true;
@@ -500,11 +525,18 @@
       const name = document.getElementById('name').value.trim();
       if (!name) return;
 
+      // Ensure FFmpeg is ready before generating
+      if (!ffmpegReady) {
+        await initFFmpeg();
+      }
+
       await generateVideo(name);
     });
 
     // Initialize on load
-    window.addEventListener('load', initFFmpeg);
+    window.addEventListener('load', async () => {
+      await initFFmpeg();
+    });
   </script>
 </body>
 </html>

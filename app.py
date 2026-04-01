@@ -6,7 +6,6 @@ import time
 import subprocess
 import tempfile
 from datetime import datetime, timezone
-from PIL import Image, ImageDraw, ImageFont
 
 # ── ffmpeg PATH fix ───────────────────────────────────────────────
 # (Optional: only needed if using /server-side video generation)  
