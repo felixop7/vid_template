@@ -325,8 +325,8 @@
   <!-- Header with Festival Title -->
   <div class="header">
     <div class="logo-container">
-      <img src="/static/assets/LORD.svg" alt="LORD Logo" class="logo logo-left" />
-      <img src="/static/assets/galkot.png" alt="Galkot Logo" class="logo logo-right" />
+      <img src="" alt="LORD Logo" class="logo logo-left" id="lord-logo" />
+      <img src="" alt="Galkot Logo" class="logo logo-right" id="galkot-logo" />
     </div>
     <h1 class="festival-title">Galkot<br><span class="accent">Music & Food Festival</span></h1>
     <p class="festival-tagline">Be Part of the Celebration</p>
@@ -365,8 +365,26 @@
   <script src="./assets/lib/ffmpeg-util.js"></script>
 
   <script>
-    // Detect environment
-    const isLocalhost = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1');
+    // Detect environment and set base URL for all assets
+    let assetBaseURL;
+    const origin = window.location.origin;
+    const pathname = window.location.pathname;
+    
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      // Local Flask: use relative path
+      assetBaseURL = './';
+    } else if (origin.includes('github.io')) {
+      // GitHub Pages: use absolute path from repo root
+      // URL format: https://felixop7.github.io/lordinvite/
+      assetBaseURL = pathname.split('/').slice(0, -1).join('/') + '/';
+    } else {
+      // Fallback for other environments
+      assetBaseURL = './';
+    }
+    
+    console.log('🔍 Environment detected - Origin:', origin);
+    console.log('📍 Pathname:', pathname);
+    console.log('📁 Asset base URL:', assetBaseURL);
     
     // Load FFmpeg WASM locally
     async function waitForFFmpeg(timeout = 30000) {
@@ -414,9 +432,19 @@
       });
     }
 
-    // Configuration - use relative paths (works on both Flask & GitHub Pages)
-    const TEMPLATE_URL = "./assets/invite_template.mp4";
-    const FONT_URL = "./assets/myfont.ttf";
+    // Configuration - use dynamic asset paths
+    const TEMPLATE_URL = assetBaseURL + "assets/invite_template.mp4";
+    const FONT_URL = assetBaseURL + "assets/myfont.ttf";
+    const LORD_LOGO_URL = assetBaseURL + "assets/LORD.svg";
+    const GALKOT_LOGO_URL = assetBaseURL + "assets/galkot.png";
+    
+    // Set logo src attributes dynamically
+    window.addEventListener('DOMContentLoaded', () => {
+      const lordLogo = document.getElementById('lord-logo');
+      const galkotLogo = document.getElementById('galkot-logo');
+      if (lordLogo) lordLogo.src = LORD_LOGO_URL;
+      if (galkotLogo) galkotLogo.src = GALKOT_LOGO_URL;
+    });
 
     const form        = document.getElementById('invite-form');
     const overlay     = document.getElementById('overlay');
@@ -470,8 +498,8 @@
         }
         
         try {
-          // Use relative path for FFmpeg WASM (works on Flask locally & GitHub Pages)
-          const baseURL = './assets/lib/';
+          // Use dynamic baseURL for FFmpeg WASM (handles both Flask & GitHub Pages)
+          const baseURL = assetBaseURL + 'assets/lib/';
           
           console.log('Loading FFmpeg from:', baseURL);
           
@@ -572,7 +600,7 @@
 
         // Load custom font and wait for it to be ready
         const fontReady = new Promise((resolve) => {
-          const fontFace = new FontFace('CustomFont', `url('/static/assets/myfont.ttf')`);
+          const fontFace = new FontFace('CustomFont', `url('${FONT_URL}')`);
           fontFace.load().then(() => {
             document.fonts.add(fontFace);
             console.log('✓ Custom font loaded and ready');
