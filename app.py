@@ -14,7 +14,7 @@ if _local_bin not in os.environ.get("PATH", ""):
     os.environ["PATH"] = _local_bin + os.pathsep + os.environ.get("PATH", "")
 # ──────────────────────────────────────────────────────────────────
 
-from flask import Flask, request, send_file, render_template, redirect, session, jsonify, Response
+from flask import Flask, request, send_file, render_template, redirect, session, jsonify, Response, send_from_directory
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", " ")
@@ -29,7 +29,7 @@ DB_PATH        = "data/names.db"
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", " ")
 ADMIN_ROUTE    = "/admin-dashboard-galkot"
 
-NAME_Y        = 1460   # move UP = decrease, move DOWN = increase (canvas is 1920px tall)
+NAME_Y        = 1500   # move UP = decrease, move DOWN = increase (canvas is 1920px tall)
 NAME_X        = 540    # only used if you switch to (NAME_X, NAME_Y) positioning
 NAME_FONTSIZE = 85
 NAME_COLOR    = "white"
@@ -190,6 +190,48 @@ def server_version():
     # Legacy server-based version (kept for backup/testing)
     return render_template("index.html")
 
+@app.route("/ffmpeg-test")
+def ffmpeg_test():
+    # FFmpeg WASM loading test page
+    with open("ffmpeg-test.html", "r") as f:
+        return f.read()
+
+@app.route("/static/assets/<path:filepath>")
+def serve_assets(filepath):
+    # Serve all files from the assets folder (including lib subfolder)
+    response = send_from_directory("assets", filepath)
+    
+    # Set proper MIME types for lib files
+    if filepath.endswith('.wasm'):
+        response.headers['Content-Type'] = 'application/wasm'
+    elif filepath.endswith('.js'):
+        response.headers['Content-Type'] = 'application/javascript'
+    elif filepath.endswith('.json'):
+        response.headers['Content-Type'] = 'application/json'
+    
+    # Remove nosniff header that causes issues with CDN-like serving
+    response.headers.pop('X-Content-Type-Options', None)
+    
+    return response
+
+@app.route("/assets/<path:filepath>")
+def serve_assets_root(filepath):
+    # GitHub Pages static serving (for hosted version)
+    response = send_from_directory("assets", filepath)
+    
+    # Set proper MIME types for lib files
+    if filepath.endswith('.wasm'):
+        response.headers['Content-Type'] = 'application/wasm'
+    elif filepath.endswith('.js'):
+        response.headers['Content-Type'] = 'application/javascript'
+    elif filepath.endswith('.json'):
+        response.headers['Content-Type'] = 'application/json'
+    elif filepath.endswith('.mp4'):
+        response.headers['Content-Type'] = 'video/mp4'
+    
+    return response
+
+
 
 @app.route("/generate", methods=["POST"])
 def generate():
@@ -274,4 +316,10 @@ def admin_logout():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    import sys
+    port = 5000
+    if '--port' in sys.argv:
+        port = int(sys.argv[sys.argv.index('--port') + 1])
+    elif '-p' in sys.argv:
+        port = int(sys.argv[sys.argv.index('-p') + 1])
+    app.run(debug=True, port=port)

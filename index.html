@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Galkot Music & Food Festival</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @font-face {
+      font-family: 'CustomFont';
+      src: url('/static/assets/myfont.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    :root {
+      --gold:  #d4a843;
+      --gold2: #f0c96b;
+      --dark:  #0d0b08;
+      --card:  #16130e;
+      --border:rgba(212,168,67,.22);
+      --text:  #f5efe0;
+      --muted: #a89070;
+    }
+
+    body {
+      min-height: 100dvh;
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    .glow {
+      position: fixed; width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(212,168,67,.12) 0%, transparent 70%);
+      top: -200px; left: 50%; transform: translateX(-50%);
+      pointer-events: none; z-index: 0;
+    }
+
+    .card {
+      position: relative; z-index: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 52px 44px 48px;
+      max-width: 480px; width: 100%;
+      box-shadow: 0 32px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(212,168,67,.1);
+      animation: fadeUp .7s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(28px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(212,168,67,.12);
+      border: 1px solid var(--border);
+      color: var(--gold);
+      font-size: 11px; font-weight: 500;
+      letter-spacing: .12em; text-transform: uppercase;
+      padding: 5px 14px; border-radius: 100px;
+      margin-bottom: 24px;
+    }
+
+    h2.card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--text) 30%, var(--gold2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--muted); font-size: .95rem;
+      line-height: 1.6; margin-bottom: 38px;
+    }
+
+    label {
+      display: block; font-size: .78rem; font-weight: 500;
+      letter-spacing: .08em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 10px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 20px;
+      font-family: 'DM Sans', sans-serif; font-size: 1.05rem;
+      color: var(--text); outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      margin-bottom: 24px;
+    }
+
+    input[type="text"]::placeholder { color: var(--muted); }
+    input[type="text"]:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(212,168,67,.15);
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      background: linear-gradient(135deg, var(--gold), #b8891e);
+      border: none; border-radius: 12px; padding: 17px;
+      font-family: 'DM Sans', sans-serif; font-size: 1rem;
+      font-weight: 600; color: #0d0b08; cursor: pointer;
+      letter-spacing: .03em;
+      transition: opacity .2s, transform .15s;
+    }
+
+    button[type="submit"]:hover  { opacity: .9; transform: translateY(-1px); }
+    button[type="submit"]:active { transform: translateY(0); }
+    button[type="submit"]:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    /* ── overlay ── */
+    #overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(13,11,8,.88);
+      backdrop-filter: blur(6px);
+      z-index: 100; flex-direction: column;
+      align-items: center; justify-content: center; gap: 28px;
+    }
+    #overlay.active { display: flex; }
+
+    .spinner {
+      width: 58px; height: 58px;
+      border: 3px solid rgba(212,168,67,.18);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .spinner-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem; color: var(--text); text-align: center;
+    }
+
+    .spinner-sub {
+      font-size: .85rem; color: var(--muted);
+      text-align: center; max-width: 260px; line-height: 1.6;
+    }
+
+    .progress-wrap {
+      width: 260px; height: 4px;
+      background: rgba(212,168,67,.15);
+      border-radius: 4px; overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold2));
+      border-radius: 4px;
+      width: 5%;
+      transition: width .3s ease;
+    }
+
+    .progress-text {
+      font-size: .85rem;
+      color: var(--gold);
+      margin-top: 8px;
+      text-align: center;
+      min-height: 20px;
+    }
+
+    /* Notification Toast */
+    #notification {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(150px);
+      background: linear-gradient(135deg, var(--gold), #b8891e);
+      color: var(--dark);
+      padding: 16px 24px;
+      border-radius: 12px;
+      z-index: 1000;
+      opacity: 0;
+      transition: transform .4s cubic-bezier(.16,1,.3,1), opacity .3s ease;
+      box-shadow: 0 16px 40px rgba(212,168,67,.3);
+      font-weight: 600;
+      text-align: center;
+      max-width: 300px;
+    }
+
+    #notification.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #error-msg {
+      display: none;
+      background: rgba(220,60,60,.12);
+      border: 1px solid rgba(220,60,60,.3);
+      color: #f87171; border-radius: 10px;
+      padding: 12px 16px; font-size: .88rem;
+      margin-top: -12px; margin-bottom: 16px;
+    }
+
+    .divider { height: 1px; background: var(--border); margin: 36px 0 28px; }
+
+    /* ── Header Section ── */
+    .header {
+      position: relative; z-index: 1;
+      text-align: center;
+      margin-bottom: 52px;
+      animation: fadeDown .8s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    @keyframes fadeDown {
+      from { opacity:0; transform:translateY(-28px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 48px;
+      margin-bottom: 32px;
+    }
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      animation: bounce 3s ease-in-out infinite;
+      filter: drop-shadow(0 4px 12px rgba(212, 168, 67, 0.2));
+    }
+
+    .logo-left {
+      animation-delay: 0s;
+    }
+
+    .logo-right {
+      animation-delay: 0.15s;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); opacity: 1; }
+      50% { transform: translateY(-12px); opacity: 0.9; }
+    }
+
+    .festival-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 8vw, 3.8rem);
+      font-weight: 900;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 50%, var(--text) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0 0 12px;
+      text-shadow: 0 4px 20px rgba(0,0,0,.3);
+    }
+
+    .festival-title .accent {
+      color: var(--gold2);
+      display: block;
+    }
+
+    .festival-tagline {
+      font-size: 1.1rem;
+      color: var(--gold);
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 16px;
+    }
+
+    .footer-note {
+      font-size: .78rem; color: var(--muted);
+      text-align: center; line-height: 1.7;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 40px 24px 36px; border-radius: 20px; }
+      
+      .header { margin-bottom: 40px; }
+      
+      .logo-container {
+        gap: 32px;
+        margin-bottom: 24px;
+      }
+      
+      .logo {
+        width: 90px;
+        height: 90px;
+      }
+      
+      .festival-title {
+        font-size: clamp(1.8rem, 6vw, 2.8rem);
+      }
+      
+      h2.card-title {
+        font-size: clamp(1.3rem, 4vw, 1.8rem);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+
+  <!-- Header with Festival Title -->
+  <div class="header">
+    <div class="logo-container">
+      <img src="/static/assets/LORD.svg" alt="LORD Logo" class="logo logo-left" />
+      <img src="/static/assets/galkot.png" alt="Galkot Logo" class="logo logo-right" />
+    </div>
+    <h1 class="festival-title">Galkot<br><span class="accent">Music & Food Festival</span></h1>
+    <p class="festival-tagline">Be Part of the Celebration</p>
+  </div>
+
+  <div id="overlay">
+    <div class="spinner"></div>
+    <p class="spinner-text" id="overlay-title">Loading FFmpeg...</p>
+    <div class="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+    <div class="progress-text" id="progress-text"></div>
+    <p class="spinner-sub" id="spinner-sub">First time? FFmpeg is loading (~20MB, cached after)...</p>
+  </div>
+
+  <div class="card">
+    <span class="badge">✦ Exclusive Invite</span>
+    <h2 class="card-title">Generate Your Invite Video</h2>
+    <p class="subtitle">Enter your name and we'll create a personalised invitation video — ready to share instantly.</p>
+
+    <form id="invite-form">
+      <label for="name">Your Full Name</label>
+      <input type="text" id="name" name="name" placeholder="e.g. Roshan Sahani"
+             maxlength="60" autocomplete="name" required />
+      <div id="error-msg"></div>
+
+      <!-- Download Notification Toast -->
+      <div id="notification"></div>
+      <button type="submit" id="submit-btn">✦ Generate My Video</button>
+    </form>
+
+    <div class="divider"></div>
+    <p class="footer-note">Your video will download automatically.<br>On iPhone, tap <strong>Download</strong> in Safari's menu.</p>
+  </div>
+
+  <!-- FFmpeg WASM Library - served locally from /static/assets/lib/ -->
+  <script src="/static/assets/lib/ffmpeg.js"></script>
+  <script src="/static/assets/lib/ffmpeg-util.js"></script>
+
+  <script>
+    // Detect environment
+    const isLocalhost = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1');
+    
+    // Load FFmpeg WASM locally
+    async function waitForFFmpeg(timeout = 30000) {
+      return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+        
+        const checkFFmpeg = () => {
+          // FFmpeg exports as FFmpegWASM, util exports as FFmpegUtil
+          if (typeof FFmpegWASM !== 'undefined' && FFmpegWASM.FFmpeg && typeof FFmpegUtil !== 'undefined' && FFmpegUtil.fetchFile) {
+            console.log('✓ FFmpeg WASM and Util loaded from local');
+            return { FFmpegClass: FFmpegWASM.FFmpeg, fetchFile: FFmpegUtil.fetchFile };
+          }
+          return null;
+        };
+        
+        const result = checkFFmpeg();
+        if (result) {
+          resolve(result);
+          return;
+        }
+        
+        console.log('⏳ Loading FFmpeg WASM libraries from local storage...');
+        let attempts = 0;
+        
+        const checkInterval = setInterval(() => {
+          attempts++;
+          const elapsed = Math.round((Date.now() - startTime) / 1000);
+          
+          if (attempts % 2 === 0) {
+            console.log(`Waiting... (${elapsed}s) - FFmpegWASM: ${typeof FFmpegWASM}, FFmpegUtil: ${typeof FFmpegUtil}`);
+          }
+          
+          const result = checkFFmpeg();
+          if (result) {
+            clearInterval(checkInterval);
+            resolve(result);
+          } else if (Date.now() - startTime > timeout) {
+            clearInterval(checkInterval);
+            console.error('✗ FFmpeg WASM libraries failed to load');
+            console.error('FFmpegWASM:', typeof FFmpegWASM);
+            console.error('FFmpegUtil:', typeof FFmpegUtil);
+            reject(new Error('FFmpeg WASM libraries failed to load'));
+          }
+        }, 500);
+      });
+    }
+
+    // Configuration - serve from appropriate location
+    const TEMPLATE_URL = isLocalhost
+      ? "/static/assets/invite_template.mp4"
+      : "/assets/invite_template.mp4";
+    const FONT_URL = isLocalhost
+      ? "/static/assets/myfont.ttf"
+      : "/assets/myfont.ttf";
+
+    const form        = document.getElementById('invite-form');
+    const overlay     = document.getElementById('overlay');
+    const errBox      = document.getElementById('error-msg');
+    const submitBtn   = document.getElementById('submit-btn');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const notification = document.getElementById('notification');
+    const overlayTitle = document.getElementById('overlay-title');
+    const spinnerSub  = document.getElementById('spinner-sub');
+
+    let FFmpeg, fetchFile, ff;
+    let ffmpegReady = false;
+
+    // Initialize FFmpeg on first use
+    async function initFFmpeg() {
+      if (ffmpegReady) return;
+      
+      try {
+        overlay.classList.add('active');
+        overlayTitle.textContent = 'Loading FFmpeg...';
+        progressBar.style.width = '10%';
+        console.log('Starting FFmpeg initialization...');
+
+        // Step 1: Wait for library to load
+        const { FFmpegClass, fetchFile: fetchFileFunc } = await waitForFFmpeg();
+        progressBar.style.width = '20%';
+        
+        FFmpeg = FFmpegClass;
+        fetchFile = fetchFileFunc;
+        
+        console.log('Creating FFmpeg instance...');
+        ff = new FFmpegClass();
+        
+        // Step 3: Configure logging
+        if (FFmpegClass.log && FFmpegClass.log.setLevel) {
+          FFmpegClass.log.setLevel('warning');
+        }
+        
+        // Step 4: Load FFmpeg WASM core
+        console.log('Loading FFmpeg WASM core (~30MB, will cache in browser)...');
+        progressBar.style.width = '40%';
+        overlayTitle.textContent = 'Initializing encoder (~30MB, first time only)...';
+        
+        // Add progress listener if available
+        if (ff) {
+          ff.on && ff.on('progress', (data) => {
+            const newWidth = 40 + (data.ratio || 0) * 60;
+            progressBar.style.width = newWidth + '%';
+          });
+        }
+        
+        try {
+          // Use absolute URLs for all FFmpeg WASM paths
+          const baseURL = window.location.origin + '/static/assets/lib/';
+          
+          console.log('Loading FFmpeg from:', baseURL);
+          
+          // FFmpeg WASM config - paths only, no callbacks (functions can't be cloned for Workers)
+          const loadStart = Date.now();
+          
+          await Promise.race([
+            ff.load({
+              coreURL: baseURL + 'ffmpeg-core.js',
+              wasmURL: baseURL + 'ffmpeg-core.wasm',
+              workerURL: baseURL + '814.ffmpeg.js', // Required for Chrome and mobile
+            }),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('WASM load timeout (>120s)')), 120000)
+            )
+          ]);
+          
+          const loadTime = ((Date.now() - loadStart) / 1000).toFixed(2);
+          progressBar.style.width = '100%';
+          console.log(`✓ FFmpeg WASM core loaded in ${loadTime}s`);
+        } catch (coreError) {
+          console.error('Failed to load WASM core:', coreError);
+          console.error('Error details:', coreError.message, coreError.stack);
+          throw new Error('WASM core load failed: ' + coreError.message);
+        }
+
+        console.log('✓ FFmpeg initialized and ready');
+        ffmpegReady = true;
+        
+        setTimeout(() => {
+          overlay.classList.remove('active');
+          progressBar.style.width = '5%';
+        }, 500);
+
+      } catch (e) {
+        console.error('✗ FFmpeg initialization failed:', e);
+        showError('FFmpeg Error: ' + e.message + '. Please refresh and try again.');
+      }
+    }
+
+    function showError(msg) {
+      errBox.textContent = msg;
+      errBox.style.display = 'block';
+      overlay.classList.remove('active');
+      submitBtn.disabled = false;
+    }
+
+    async function generateVideo(name) {
+      try {
+        overlayTitle.textContent = 'Creating your video...';
+        progressBar.style.width = '5%';
+        overlay.classList.add('active');
+        submitBtn.disabled = true;
+        
+        console.log(`\n${'='.repeat(60)}`);
+        console.log(`🎬 Starting video generation for: "${name}"`);
+        console.log(`${'='.repeat(60)}\n`);
+
+        if (!ffmpegReady) {
+          // Try to initialize if not ready
+          try {
+            console.log('FFmpeg not ready, initializing...');
+            await initFFmpeg();
+          } catch {
+            showError('FFmpeg not ready. Please refresh the page and try again.');
+            return;
+          }
+        }
+
+        if (!ffmpegReady) {
+          showError('FFmpeg failed to initialize. Please refresh the page.');
+          return;
+        }
+
+        // Step 1: Load template and font
+        progressBar.style.width = '15%';
+        progressText.textContent = '15%';
+        overlayTitle.textContent = 'Loading template...';
+        console.log('[Step 1] Loading template and font...');
+        
+        const templateData = await fetchFile(TEMPLATE_URL);
+        const fontData = await fetchFile(FONT_URL);
+        console.log(`✓ Loaded template (${templateData.byteLength} bytes) and font (${fontData.byteLength} bytes)`);
+        
+        progressBar.style.width = '30%';
+        progressText.textContent = '30%';
+        
+        // Write files to FFmpeg filesystem
+        await ff.writeFile('template.mp4', templateData);
+        await ff.writeFile('myfont.ttf', fontData);
+        console.log('✓ Files written to FFmpeg filesystem');
+
+        // Step 2: Create text overlay PNG using Canvas
+        progressBar.style.width = '40%';
+        progressText.textContent = '40%';
+        overlayTitle.textContent = 'Creating text overlay...';
+        console.log('[Step 2] Creating text overlay canvas...');
+
+        // Load custom font and wait for it to be ready
+        const fontReady = new Promise((resolve) => {
+          const fontFace = new FontFace('CustomFont', `url('/static/assets/myfont.ttf')`);
+          fontFace.load().then(() => {
+            document.fonts.add(fontFace);
+            console.log('✓ Custom font loaded and ready');
+            resolve();
+          }).catch(err => {
+            console.warn('Custom font failed to load, using Arial:', err);
+            resolve();
+          });
+        });
+        await fontReady;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 1080;
+        canvas.height = 1920;
+        const ctx = canvas.getContext('2d');
+
+        // Use custom font from myfont.ttf (now properly loaded)
+        // Fallback to bold Arial if custom font doesn't load
+        ctx.font = 'bold 90px "CustomFont", "Arial", "Helvetica", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Clear canvas with transparent background
+        ctx.clearRect(0, 0, 1080, 1920);
+
+        // Draw shadow (dark outline for visibility)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        // Y Position: Change 1462 to adjust text height (higher value = lower on screen, lower value = higher on screen)
+        ctx.fillText(name, 540 + 3, 1520 + 3);
+        ctx.fillText(name, 540 - 3, 1520 + 3);
+        ctx.fillText(name, 540 + 3, 1520 - 3);
+        ctx.fillText(name, 540 - 3, 1520 - 3);
+
+        // Draw main text (white)
+        ctx.fillStyle = 'rgb(255, 255, 255)';
+        // Y Position: Change 1520 to adjust text height
+        ctx.fillText(name, 540, 1520);
+
+        // Convert canvas to blob
+        const textBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        const textData = await textBlob.arrayBuffer();
+        console.log(`✓ Canvas converted to PNG (${textData.byteLength} bytes)`);
+        
+        await ff.writeFile('text_overlay.png', new Uint8Array(textData));
+        console.log(`✓ Text overlay written to FFmpeg filesystem`);
+
+        // Step 3: Run FFmpeg encoding
+        progressBar.style.width = '50%';
+        progressText.textContent = '50%';
+        overlayTitle.textContent = 'Encoding video...';
+
+        // Set up progress tracking specifically for encoding
+        let lastProgressUpdate = Date.now();
+        const progressUpdater = (data) => {
+          // FFmpeg returns 'progress' field, not 'ratio'
+          const ratio = data.progress || 0;
+          const newWidth = Math.min(95, 50 + ratio * 35);
+          progressBar.style.width = newWidth + '%';
+          progressText.textContent = Math.round(newWidth) + '%';
+          
+          // Log progress every 5 seconds
+          const now = Date.now();
+          if (now - lastProgressUpdate > 5000) {
+            console.log(`Encoding progress: ${(ratio * 100).toFixed(1)}%`, data);
+            lastProgressUpdate = now;
+          }
+        };
+        
+        // Attach progress listener for encoding
+        const wasProgressListenerAttached = ff._listeners && ff._listeners['progress'];
+        if (ff.on) {
+          ff.on('progress', progressUpdater);
+        }
+        
+        try {
+          console.log('Starting FFmpeg encoding (this may take 1-2 minutes)...');
+          const encodingStart = Date.now();
+          
+          await Promise.race([
+            ff.exec([
+              '-i', 'template.mp4',
+              '-i', 'text_overlay.png',
+              '-filter_complex', '[0:v][1:v]overlay=0:0[outv]',
+              '-map', '[outv]',
+              '-map', '0:a',
+              '-c:v', 'libx264',
+              '-b:v', '3500k',
+              '-preset', 'ultrafast',
+              '-r', '30',
+              '-c:a', 'aac',
+              '-b:a', '128k',
+              '-y',
+              'output.mp4'
+            ]),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Encoding timeout (>600s). Tab may have been suspended. Ensure this tab remains focused.')), 600000)
+            )
+          ]);
+          
+          const encodingTime = ((Date.now() - encodingStart) / 1000).toFixed(1);
+          console.log(`✓ FFmpeg encoding completed in ${encodingTime}s`);
+        } catch (execError) {
+          console.error('✗ FFmpeg exec failed:', execError);
+          console.error('Error message:', execError.message);
+          console.error('Error stack:', execError.stack);
+          
+          // Provide helpful error message
+          let errorMsg = 'Video encoding failed. ';
+          if (execError.message.includes('timeout')) {
+            errorMsg += 'Encoding took too long. Please ensure this tab stays focused and try again.';
+          } else if (execError.message.includes('suspended')) {
+            errorMsg += 'Tab was suspended during processing. Keep the tab focused and try again.';
+          } else {
+            errorMsg += execError.message;
+          }
+          
+          throw new Error(errorMsg);
+        }
+
+        // Update progress as encoding completes
+        progressBar.style.width = '85%';
+        progressText.textContent = '85%';
+        spinnerSub.textContent = 'Finalizing video...';
+
+        // Step 4: Read output and download
+        progressBar.style.width = '95%';
+        progressText.textContent = '95%';
+        overlayTitle.textContent = 'Preparing download...';
+        
+        let url, fileName; // Declare in outer scope so cleanup can access them
+        
+        try {
+          console.log('Reading output.mp4 from FFmpeg virtual filesystem...');
+          const data = await ff.readFile('output.mp4');
+          console.log(`✓ Read ${data.length || data.byteLength} bytes from output.mp4`);
+          
+          if (!data || (data.length === 0 && data.byteLength === 0)) {
+            throw new Error('Output file is empty. Encoding may have failed.');
+          }
+          
+          const blob = new Blob([data.buffer || data], { type: 'video/mp4' });
+          console.log(`✓ Created Blob of ${blob.size} bytes`);
+          
+          url = URL.createObjectURL(blob);
+          fileName = `invite_${name.replace(/\s+/g, '_')}.mp4`;
+          console.log(`✓ Generated download URL, filename: ${fileName}`);
+
+          // Cross-browser download method
+          let downloadTriggered = false;
+          try {
+            // Method 1: Standard download (works on most browsers)
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            
+            console.log('Triggering download...');
+            // Trigger click - do NOT wait, let it trigger immediately
+            a.click();
+            console.log('✓ Download triggered');
+            downloadTriggered = true;
+            
+            // Clean up the anchor element after a short delay
+            setTimeout(() => {
+              document.body.removeChild(a);
+            }, 100);
+          } catch (downloadErr) {
+            // Fallback: Use window.open for mobile/unsupported browsers
+            console.warn('Standard download method failed, using fallback:', downloadErr);
+            console.log('Opening in new tab with window.open()');
+            window.open(url, '_blank');
+            downloadTriggered = true;
+          }
+          
+          // IMPORTANT: Wait for download to complete before cleanup!
+          // Give browser time to start/complete the download before revoking URL
+          console.log('Waiting 3 seconds for download to complete before cleanup...');
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          
+          // Now clean up FFmpeg filesystem
+          console.log('Cleaning up temporary files from FFmpeg...');
+          const filesToClean = ['template.mp4', 'text_overlay.png', 'output.mp4'];
+          for (const file of filesToClean) {
+            try {
+              await ff.deleteFile(file);
+              console.log(`✓ Deleted ${file}`);
+            } catch (deleteErr) {
+              // Non-fatal error - file might not exist
+              console.warn(`Could not delete ${file}:`, deleteErr.message);
+            }
+          }
+          
+          // Revoke URL LAST, after download is complete
+          console.log('Revoking download URL...');
+          try {
+            if (url) URL.revokeObjectURL(url);
+            console.log('✓ Object URL revoked');
+          } catch (e) {
+            console.warn('Could not revoke object URL:', e);
+          }
+
+          progressBar.style.width = '100%';
+          progressText.textContent = '100%';
+          overlayTitle.textContent = 'Done! Video downloaded.';
+          
+          // Show success notification
+          notification.textContent = `✓ ${fileName} downloaded successfully!`;
+          notification.classList.add('show');
+          
+          console.log('✓ Video generation completed successfully');
+        } catch (readError) {
+          console.error('✗ Failed to read/download output:', readError);
+          throw new Error('Download preparation failed: ' + readError.message);
+        }
+        
+        setTimeout(() => {
+          overlay.classList.remove('active');
+          submitBtn.disabled = false;
+          progressBar.style.width = '5%';
+          progressText.textContent = '';
+          spinnerSub.textContent = 'First time? FFmpeg is loading (~20MB, cached after)...';
+          notification.classList.remove('show');
+        }, 3000);
+
+      } catch (err) {
+        console.error('✗ FATAL - Video generation error:', err);
+        console.error('Error name:', err.name);
+        console.error('Error message:', err.message);
+        console.error('Error stack:', err.stack);
+        
+        progressText.textContent = '';
+        
+        // Specific error messages for better debugging
+        let userMessage = 'Video generation failed. ';
+        if (err.message.includes('timeout')) {
+          userMessage += 'Processing took too long. Keep this tab focused and try again.';
+        } else if (err.message.includes('suspended')) {
+          userMessage += 'Tab was suspended. Make sure this tab stays active.';
+        } else if (err.message.includes('encoding')) {
+          userMessage += 'Video encoding failed. Check console for details.';
+        } else if (err.message.includes('download')) {
+          userMessage += 'Download failed. Check your browser settings.';
+        } else {
+          userMessage += err.message || 'Unknown error occurred.';
+        }
+        
+        showError(userMessage);
+        showNotification('✗ Error: ' + userMessage, 5000);
+      }
+    }
+
+    // Show notification with message and auto-hide
+    function showNotification(msg, duration = 3000) {
+      notification.textContent = msg;
+      notification.classList.add('show');
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, duration);
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errBox.style.display = 'none';
+      progressText.textContent = '';
+
+      const name = document.getElementById('name').value.trim();
+      if (!name) {
+        showNotification('⚠ Please enter a name');
+        return;
+      }
+
+      // Ensure FFmpeg is ready before generating
+      if (!ffmpegReady) {
+        await initFFmpeg();
+      }
+
+      await generateVideo(name);
+    });
+
+    // Initialize on load
+    window.addEventListener('load', async () => {
+      await initFFmpeg();
+    });
+  </script>
+</body>
+</html>

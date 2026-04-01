@@ -472,9 +472,10 @@
         a.remove();
 
         // Cleanup
-        ff.FS('unlink', 'template.mp4');
-        ff.FS('unlink', 'text_overlay.png');
-        ff.FS('unlink', 'output.mp4');
+        // Clean up intermediate files using FFmpeg WASM deleteFile API
+        await ff.deleteFile('template.mp4');
+        await ff.deleteFile('text_overlay.png');
+        await ff.deleteFile('output.mp4');
         URL.revokeObjectURL(url);
 
         progressBar.style.width = '100%';

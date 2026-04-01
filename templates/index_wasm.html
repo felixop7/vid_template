@@ -9,6 +9,13 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    @font-face {
+      font-family: 'CustomFont';
+      src: url('/static/assets/myfont.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
     :root {
       --gold:  #d4a843;
       --gold2: #f0c96b;
@@ -156,7 +163,6 @@
       text-align: center; max-width: 260px; line-height: 1.6;
     }
 
-    /* ── progress bar ── */
     .progress-wrap {
       width: 260px; height: 4px;
       background: rgba(212,168,67,.15);
@@ -168,6 +174,38 @@
       border-radius: 4px;
       width: 5%;
       transition: width .3s ease;
+    }
+
+    .progress-text {
+      font-size: .85rem;
+      color: var(--gold);
+      margin-top: 8px;
+      text-align: center;
+      min-height: 20px;
+    }
+
+    /* Notification Toast */
+    #notification {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(150px);
+      background: linear-gradient(135deg, var(--gold), #b8891e);
+      color: var(--dark);
+      padding: 16px 24px;
+      border-radius: 12px;
+      z-index: 1000;
+      opacity: 0;
+      transition: transform .4s cubic-bezier(.16,1,.3,1), opacity .3s ease;
+      box-shadow: 0 16px 40px rgba(212,168,67,.3);
+      font-weight: 600;
+      text-align: center;
+      max-width: 300px;
+    }
+
+    #notification.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
 
     #error-msg {
@@ -287,8 +325,8 @@
   <!-- Header with Festival Title -->
   <div class="header">
     <div class="logo-container">
-      <img src="https://raw.githubusercontent.com/felixop7/vid_template/main/assets/LORD.svg" alt="LORD Logo" class="logo logo-left" />
-      <img src="https://raw.githubusercontent.com/felixop7/vid_template/main/assets/galkot.png" alt="Galkot Logo" class="logo logo-right" />
+      <img src="/static/assets/LORD.svg" alt="LORD Logo" class="logo logo-left" />
+      <img src="/static/assets/galkot.png" alt="Galkot Logo" class="logo logo-right" />
     </div>
     <h1 class="festival-title">Galkot<br><span class="accent">Music & Food Festival</span></h1>
     <p class="festival-tagline">Be Part of the Celebration</p>
@@ -298,6 +336,7 @@
     <div class="spinner"></div>
     <p class="spinner-text" id="overlay-title">Loading FFmpeg...</p>
     <div class="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+    <div class="progress-text" id="progress-text"></div>
     <p class="spinner-sub" id="spinner-sub">First time? FFmpeg is loading (~20MB, cached after)...</p>
   </div>
 
@@ -311,6 +350,9 @@
       <input type="text" id="name" name="name" placeholder="e.g. Roshan Sahani"
              maxlength="60" autocomplete="name" required />
       <div id="error-msg"></div>
+
+      <!-- Download Notification Toast -->
+      <div id="notification"></div>
       <button type="submit" id="submit-btn">✦ Generate My Video</button>
     </form>
 
@@ -318,51 +360,82 @@
     <p class="footer-note">Your video will download automatically.<br>On iPhone, tap <strong>Download</strong> in Safari's menu.</p>
   </div>
 
-  <!-- FFmpeg WASM Library -->
-  <script async src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
+  <!-- FFmpeg WASM Library - served locally from /static/assets/lib/ -->
+  <script src="/static/assets/lib/ffmpeg.js"></script>
+  <script src="/static/assets/lib/ffmpeg-util.js"></script>
 
   <script>
-    let FFmpeg, fetchFile, ff;
+    // Detect environment
+    const isLocalhost = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1');
     
-    // Wait for FFmpeg library to load
-    async function waitForFFmpeg() {
-      return new Promise((resolve) => {
-        if (window.FFmpeg && window.FFmpeg.FFmpeg) {
-          FFmpeg = window.FFmpeg.FFmpeg;
-          fetchFile = window.FFmpeg.fetchFile;
-          resolve();
-        } else {
-          const checkInterval = setInterval(() => {
-            if (window.FFmpeg && window.FFmpeg.FFmpeg) {
-              FFmpeg = window.FFmpeg.FFmpeg;
-              fetchFile = window.FFmpeg.fetchFile;
-              clearInterval(checkInterval);
-              resolve();
-            }
-          }, 100);
+    // Load FFmpeg WASM locally
+    async function waitForFFmpeg(timeout = 30000) {
+      return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+        
+        const checkFFmpeg = () => {
+          // FFmpeg exports as FFmpegWASM, util exports as FFmpegUtil
+          if (typeof FFmpegWASM !== 'undefined' && FFmpegWASM.FFmpeg && typeof FFmpegUtil !== 'undefined' && FFmpegUtil.fetchFile) {
+            console.log('✓ FFmpeg WASM and Util loaded from local');
+            return { FFmpegClass: FFmpegWASM.FFmpeg, fetchFile: FFmpegUtil.fetchFile };
+          }
+          return null;
+        };
+        
+        const result = checkFFmpeg();
+        if (result) {
+          resolve(result);
+          return;
         }
+        
+        console.log('⏳ Loading FFmpeg WASM libraries from local storage...');
+        let attempts = 0;
+        
+        const checkInterval = setInterval(() => {
+          attempts++;
+          const elapsed = Math.round((Date.now() - startTime) / 1000);
+          
+          if (attempts % 2 === 0) {
+            console.log(`Waiting... (${elapsed}s) - FFmpegWASM: ${typeof FFmpegWASM}, FFmpegUtil: ${typeof FFmpegUtil}`);
+          }
+          
+          const result = checkFFmpeg();
+          if (result) {
+            clearInterval(checkInterval);
+            resolve(result);
+          } else if (Date.now() - startTime > timeout) {
+            clearInterval(checkInterval);
+            console.error('✗ FFmpeg WASM libraries failed to load');
+            console.error('FFmpegWASM:', typeof FFmpegWASM);
+            console.error('FFmpegUtil:', typeof FFmpegUtil);
+            reject(new Error('FFmpeg WASM libraries failed to load'));
+          }
+        }, 500);
       });
     }
-    
-    waitForFFmpeg().then(() => {
-      ff = new FFmpeg();
-    });
 
-    // Configuration - UPDATE THESE URLs TO YOUR REPO
-    const TEMPLATE_URL = "https://raw.githubusercontent.com/felixop7/vid_template/main/assets/invite_template.mp4";
-    const FONT_URL     = "https://raw.githubusercontent.com/felixop7/vid_template/main/assets/myfont.ttf";
+    // Configuration - serve from appropriate location
+    const TEMPLATE_URL = isLocalhost
+      ? "/static/assets/invite_template.mp4"
+      : "/assets/invite_template.mp4";
+    const FONT_URL = isLocalhost
+      ? "/static/assets/myfont.ttf"
+      : "/assets/myfont.ttf";
 
-    const form       = document.getElementById('invite-form');
-    const overlay    = document.getElementById('overlay');
-    const errBox     = document.getElementById('error-msg');
-    const submitBtn  = document.getElementById('submit-btn');
+    const form        = document.getElementById('invite-form');
+    const overlay     = document.getElementById('overlay');
+    const errBox      = document.getElementById('error-msg');
+    const submitBtn   = document.getElementById('submit-btn');
     const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const notification = document.getElementById('notification');
     const overlayTitle = document.getElementById('overlay-title');
-    const spinnerSub = document.getElementById('spinner-sub');
+    const spinnerSub  = document.getElementById('spinner-sub');
 
+    let FFmpeg, fetchFile, ff;
     let ffmpegReady = false;
 
-    // Initialize FFmpeg on page load
+    // Initialize FFmpeg on first use
     async function initFFmpeg() {
       if (ffmpegReady) return;
       
@@ -370,18 +443,67 @@
         overlay.classList.add('active');
         overlayTitle.textContent = 'Loading FFmpeg...';
         progressBar.style.width = '10%';
+        console.log('Starting FFmpeg initialization...');
 
-        // Wait for FFmpeg library to be available
-        await waitForFFmpeg();
-
-        FFmpeg.log.setLevel('warning');
+        // Step 1: Wait for library to load
+        const { FFmpegClass, fetchFile: fetchFileFunc } = await waitForFFmpeg();
+        progressBar.style.width = '20%';
         
-        await ff.load({
-          coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js',
-        });
+        FFmpeg = FFmpegClass;
+        fetchFile = fetchFileFunc;
+        
+        console.log('Creating FFmpeg instance...');
+        ff = new FFmpegClass();
+        
+        // Step 3: Configure logging
+        if (FFmpegClass.log && FFmpegClass.log.setLevel) {
+          FFmpegClass.log.setLevel('warning');
+        }
+        
+        // Step 4: Load FFmpeg WASM core
+        console.log('Loading FFmpeg WASM core (~30MB, will cache in browser)...');
+        progressBar.style.width = '40%';
+        overlayTitle.textContent = 'Initializing encoder (~30MB, first time only)...';
+        
+        // Add progress listener if available
+        if (ff) {
+          ff.on && ff.on('progress', (data) => {
+            const newWidth = 40 + (data.ratio || 0) * 60;
+            progressBar.style.width = newWidth + '%';
+          });
+        }
+        
+        try {
+          // Use absolute URLs for all FFmpeg WASM paths
+          const baseURL = window.location.origin + '/static/assets/lib/';
+          
+          console.log('Loading FFmpeg from:', baseURL);
+          
+          // FFmpeg WASM config - paths only, no callbacks (functions can't be cloned for Workers)
+          const loadStart = Date.now();
+          
+          await Promise.race([
+            ff.load({
+              coreURL: baseURL + 'ffmpeg-core.js',
+              wasmURL: baseURL + 'ffmpeg-core.wasm',
+              workerURL: baseURL + '814.ffmpeg.js', // Required for Chrome and mobile
+            }),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('WASM load timeout (>120s)')), 120000)
+            )
+          ]);
+          
+          const loadTime = ((Date.now() - loadStart) / 1000).toFixed(2);
+          progressBar.style.width = '100%';
+          console.log(`✓ FFmpeg WASM core loaded in ${loadTime}s`);
+        } catch (coreError) {
+          console.error('Failed to load WASM core:', coreError);
+          console.error('Error details:', coreError.message, coreError.stack);
+          throw new Error('WASM core load failed: ' + coreError.message);
+        }
 
+        console.log('✓ FFmpeg initialized and ready');
         ffmpegReady = true;
-        progressBar.style.width = '100%';
         
         setTimeout(() => {
           overlay.classList.remove('active');
@@ -389,8 +511,8 @@
         }, 500);
 
       } catch (e) {
-        showError('Failed to load FFmpeg. Please refresh the page.');
-        console.error('FFmpeg initialization failed:', e);
+        console.error('✗ FFmpeg initialization failed:', e);
+        showError('FFmpeg Error: ' + e.message + '. Please refresh and try again.');
       }
     }
 
@@ -407,36 +529,73 @@
         progressBar.style.width = '5%';
         overlay.classList.add('active');
         submitBtn.disabled = true;
+        
+        console.log(`\n${'='.repeat(60)}`);
+        console.log(`🎬 Starting video generation for: "${name}"`);
+        console.log(`${'='.repeat(60)}\n`);
 
         if (!ffmpegReady) {
-          showError('FFmpeg not ready. Please refresh and try again.');
+          // Try to initialize if not ready
+          try {
+            console.log('FFmpeg not ready, initializing...');
+            await initFFmpeg();
+          } catch {
+            showError('FFmpeg not ready. Please refresh the page and try again.');
+            return;
+          }
+        }
+
+        if (!ffmpegReady) {
+          showError('FFmpeg failed to initialize. Please refresh the page.');
           return;
         }
 
         // Step 1: Load template and font
         progressBar.style.width = '15%';
+        progressText.textContent = '15%';
         overlayTitle.textContent = 'Loading template...';
+        console.log('[Step 1] Loading template and font...');
         
         const templateData = await fetchFile(TEMPLATE_URL);
         const fontData = await fetchFile(FONT_URL);
+        console.log(`✓ Loaded template (${templateData.byteLength} bytes) and font (${fontData.byteLength} bytes)`);
         
         progressBar.style.width = '30%';
+        progressText.textContent = '30%';
         
         // Write files to FFmpeg filesystem
         await ff.writeFile('template.mp4', templateData);
         await ff.writeFile('myfont.ttf', fontData);
+        console.log('✓ Files written to FFmpeg filesystem');
 
         // Step 2: Create text overlay PNG using Canvas
         progressBar.style.width = '40%';
+        progressText.textContent = '40%';
         overlayTitle.textContent = 'Creating text overlay...';
+        console.log('[Step 2] Creating text overlay canvas...');
+
+        // Load custom font and wait for it to be ready
+        const fontReady = new Promise((resolve) => {
+          const fontFace = new FontFace('CustomFont', `url('/static/assets/myfont.ttf')`);
+          fontFace.load().then(() => {
+            document.fonts.add(fontFace);
+            console.log('✓ Custom font loaded and ready');
+            resolve();
+          }).catch(err => {
+            console.warn('Custom font failed to load, using Arial:', err);
+            resolve();
+          });
+        });
+        await fontReady;
 
         const canvas = document.createElement('canvas');
         canvas.width = 1080;
         canvas.height = 1920;
         const ctx = canvas.getContext('2d');
 
-        // Use bold system font (closest to template font)
-        ctx.font = 'bold 90px "Arial", "Helvetica", sans-serif';
+        // Use custom font from myfont.ttf (now properly loaded)
+        // Fallback to bold Arial if custom font doesn't load
+        ctx.font = 'bold 90px "CustomFont", "Arial", "Helvetica", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
@@ -445,85 +604,250 @@
 
         // Draw shadow (dark outline for visibility)
         ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
-        ctx.fillText(name, 540 + 3, 1462 + 3);
-        ctx.fillText(name, 540 - 3, 1462 + 3);
-        ctx.fillText(name, 540 + 3, 1462 - 3);
-        ctx.fillText(name, 540 - 3, 1462 - 3);
+        // Y Position: Change 1520 to adjust text height (higher value = lower on screen, lower value = higher on screen)
+        ctx.fillText(name, 540 + 3, 1520 + 3);
+        ctx.fillText(name, 540 - 3, 1520 + 3);
+        ctx.fillText(name, 540 + 3, 1520 - 3);
+        ctx.fillText(name, 540 - 3, 1520 - 3);
 
         // Draw main text (white)
         ctx.fillStyle = 'rgb(255, 255, 255)';
-        ctx.fillText(name, 540, 1462);
+        // Y Position: Change 1520 to adjust text height
+        ctx.fillText(name, 540, 1520);
 
         // Convert canvas to blob
         const textBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
         const textData = await textBlob.arrayBuffer();
+        console.log(`✓ Canvas converted to PNG (${textData.byteLength} bytes)`);
+        
         await ff.writeFile('text_overlay.png', new Uint8Array(textData));
+        console.log(`✓ Text overlay written to FFmpeg filesystem`);
 
         // Step 3: Run FFmpeg encoding
         progressBar.style.width = '50%';
+        progressText.textContent = '50%';
         overlayTitle.textContent = 'Encoding video...';
 
-        await ff.exec([
-          '-i', 'template.mp4',
-          '-i', 'text_overlay.png',
-          '-filter_complex', '[0:v][1:v]overlay=0:0[outv]',
-          '-map', '[outv]',
-          '-map', '0:a',
-          '-c:v', 'libx264',
-          '-b:v', '3500k',
-          '-preset', 'ultrafast',
-          '-r', '30',
-          '-c:a', 'aac',
-          '-b:a', '128k',
-          '-y',
-          'output.mp4'
-        ]);
+        // Set up progress tracking specifically for encoding
+        let lastProgressUpdate = Date.now();
+        const progressUpdater = (data) => {
+          // FFmpeg returns 'progress' field, not 'ratio'
+          const ratio = data.progress || 0;
+          const newWidth = Math.min(95, 50 + ratio * 35);
+          progressBar.style.width = newWidth + '%';
+          progressText.textContent = Math.round(newWidth) + '%';
+          
+          // Log progress every 5 seconds
+          const now = Date.now();
+          if (now - lastProgressUpdate > 5000) {
+            console.log(`Encoding progress: ${(ratio * 100).toFixed(1)}%`, data);
+            lastProgressUpdate = now;
+          }
+        };
+        
+        // Attach progress listener for encoding
+        const wasProgressListenerAttached = ff._listeners && ff._listeners['progress'];
+        if (ff.on) {
+          ff.on('progress', progressUpdater);
+        }
+        
+        try {
+          console.log('Starting FFmpeg encoding (this may take 1-2 minutes)...');
+          const encodingStart = Date.now();
+          
+          await Promise.race([
+            ff.exec([
+              '-i', 'template.mp4',
+              '-i', 'text_overlay.png',
+              '-filter_complex', '[0:v][1:v]overlay=0:0[outv]',
+              '-map', '[outv]',
+              '-map', '0:a',
+              '-c:v', 'libx264',
+              '-b:v', '3500k',
+              '-preset', 'ultrafast',
+              '-r', '30',
+              '-c:a', 'aac',
+              '-b:a', '128k',
+              '-y',
+              'output.mp4'
+            ]),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Encoding timeout (>600s). Tab may have been suspended. Ensure this tab remains focused.')), 600000)
+            )
+          ]);
+          
+          const encodingTime = ((Date.now() - encodingStart) / 1000).toFixed(1);
+          console.log(`✓ FFmpeg encoding completed in ${encodingTime}s`);
+        } catch (execError) {
+          console.error('✗ FFmpeg exec failed:', execError);
+          console.error('Error message:', execError.message);
+          console.error('Error stack:', execError.stack);
+          
+          // Provide helpful error message
+          let errorMsg = 'Video encoding failed. ';
+          if (execError.message.includes('timeout')) {
+            errorMsg += 'Encoding took too long. Please ensure this tab stays focused and try again.';
+          } else if (execError.message.includes('suspended')) {
+            errorMsg += 'Tab was suspended during processing. Keep the tab focused and try again.';
+          } else {
+            errorMsg += execError.message;
+          }
+          
+          throw new Error(errorMsg);
+        }
 
-        // Update progress as encoding happens
+        // Update progress as encoding completes
         progressBar.style.width = '85%';
+        progressText.textContent = '85%';
         spinnerSub.textContent = 'Finalizing video...';
 
         // Step 4: Read output and download
-        const data = await ff.readFile('output.mp4');
-        const blob = new Blob([data.buffer], { type: 'video/mp4' });
-        const url = URL.createObjectURL(blob);
+        progressBar.style.width = '95%';
+        progressText.textContent = '95%';
+        overlayTitle.textContent = 'Preparing download...';
+        
+        let url, fileName; // Declare in outer scope so cleanup can access them
+        
+        try {
+          console.log('Reading output.mp4 from FFmpeg virtual filesystem...');
+          const data = await ff.readFile('output.mp4');
+          console.log(`✓ Read ${data.length || data.byteLength} bytes from output.mp4`);
+          
+          if (!data || (data.length === 0 && data.byteLength === 0)) {
+            throw new Error('Output file is empty. Encoding may have failed.');
+          }
+          
+          const blob = new Blob([data.buffer || data], { type: 'video/mp4' });
+          console.log(`✓ Created Blob of ${blob.size} bytes`);
+          
+          url = URL.createObjectURL(blob);
+          fileName = `invite_${name.replace(/\s+/g, '_')}.mp4`;
+          console.log(`✓ Generated download URL, filename: ${fileName}`);
 
-        // Trigger download
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `invite_${name.replace(/\s+/g, '_')}.mp4`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+          // Cross-browser download method
+          let downloadTriggered = false;
+          try {
+            // Method 1: Standard download (works on most browsers)
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            
+            console.log('Triggering download...');
+            // Trigger click - do NOT wait, let it trigger immediately
+            a.click();
+            console.log('✓ Download triggered');
+            downloadTriggered = true;
+            
+            // Clean up the anchor element after a short delay
+            setTimeout(() => {
+              document.body.removeChild(a);
+            }, 100);
+          } catch (downloadErr) {
+            // Fallback: Use window.open for mobile/unsupported browsers
+            console.warn('Standard download method failed, using fallback:', downloadErr);
+            console.log('Opening in new tab with window.open()');
+            window.open(url, '_blank');
+            downloadTriggered = true;
+          }
+          
+          // IMPORTANT: Wait for download to complete before cleanup!
+          // Give browser time to start/complete the download before revoking URL
+          console.log('Waiting 3 seconds for download to complete before cleanup...');
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          
+          // Now clean up FFmpeg filesystem
+          console.log('Cleaning up temporary files from FFmpeg...');
+          const filesToClean = ['template.mp4', 'text_overlay.png', 'output.mp4'];
+          for (const file of filesToClean) {
+            try {
+              await ff.deleteFile(file);
+              console.log(`✓ Deleted ${file}`);
+            } catch (deleteErr) {
+              // Non-fatal error - file might not exist
+              console.warn(`Could not delete ${file}:`, deleteErr.message);
+            }
+          }
+          
+          // Revoke URL LAST, after download is complete
+          console.log('Revoking download URL...');
+          try {
+            if (url) URL.revokeObjectURL(url);
+            console.log('✓ Object URL revoked');
+          } catch (e) {
+            console.warn('Could not revoke object URL:', e);
+          }
 
-        // Cleanup
-        ff.FS('unlink', 'template.mp4');
-        ff.FS('unlink', 'text_overlay.png');
-        ff.FS('unlink', 'output.mp4');
-        URL.revokeObjectURL(url);
-
-        progressBar.style.width = '100%';
-        overlayTitle.textContent = 'Done! Video downloaded.';
+          progressBar.style.width = '100%';
+          progressText.textContent = '100%';
+          overlayTitle.textContent = 'Done! Video downloaded.';
+          
+          // Show success notification
+          notification.textContent = `✓ ${fileName} downloaded successfully!`;
+          notification.classList.add('show');
+          
+          console.log('✓ Video generation completed successfully');
+        } catch (readError) {
+          console.error('✗ Failed to read/download output:', readError);
+          throw new Error('Download preparation failed: ' + readError.message);
+        }
         
         setTimeout(() => {
           overlay.classList.remove('active');
           submitBtn.disabled = false;
           progressBar.style.width = '5%';
+          progressText.textContent = '';
           spinnerSub.textContent = 'First time? FFmpeg is loading (~20MB, cached after)...';
-        }, 1000);
+          notification.classList.remove('show');
+        }, 3000);
 
       } catch (err) {
-        console.error('Video generation error:', err);
-        showError('Video generation failed. Please try again.');
+        console.error('✗ FATAL - Video generation error:', err);
+        console.error('Error name:', err.name);
+        console.error('Error message:', err.message);
+        console.error('Error stack:', err.stack);
+        
+        progressText.textContent = '';
+        
+        // Specific error messages for better debugging
+        let userMessage = 'Video generation failed. ';
+        if (err.message.includes('timeout')) {
+          userMessage += 'Processing took too long. Keep this tab focused and try again.';
+        } else if (err.message.includes('suspended')) {
+          userMessage += 'Tab was suspended. Make sure this tab stays active.';
+        } else if (err.message.includes('encoding')) {
+          userMessage += 'Video encoding failed. Check console for details.';
+        } else if (err.message.includes('download')) {
+          userMessage += 'Download failed. Check your browser settings.';
+        } else {
+          userMessage += err.message || 'Unknown error occurred.';
+        }
+        
+        showError(userMessage);
+        showNotification('✗ Error: ' + userMessage, 5000);
       }
+    }
+
+    // Show notification with message and auto-hide
+    function showNotification(msg, duration = 3000) {
+      notification.textContent = msg;
+      notification.classList.add('show');
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, duration);
     }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       errBox.style.display = 'none';
+      progressText.textContent = '';
 
       const name = document.getElementById('name').value.trim();
-      if (!name) return;
+      if (!name) {
+        showNotification('⚠ Please enter a name');
+        return;
+      }
 
       // Ensure FFmpeg is ready before generating
       if (!ffmpegReady) {

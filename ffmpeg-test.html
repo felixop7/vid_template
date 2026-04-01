@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FFmpeg WASM Direct Load Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #f0f0f0; }
+        .log { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #2196F3; white-space: pre-wrap; word-break: break-all; }
+        .error { border-left-color: #f44336; }
+        .success { border-left-color: #4CAF50; }
+        .warning { border-left-color: #ff9800; }
+    </style>
+</head>
+<body>
+    <h1>FFmpeg WASM Direct Load Test</h1>
+    <p>This tests direct CDN loading of FFmpeg WASM v0.12.10</p>
+    <div id="status"></div>
+    
+    <!-- FFmpeg WASM Library - served locally from /static/assets/lib/ -->
+    <script src="/static/assets/lib/ffmpeg.js"></script>
+    <script src="/static/assets/lib/ffmpeg-util.js"></script>
+    
+    <script>
+        const statusDiv = document.getElementById('status');
+        
+        function log(msg, type = 'success') {
+            const div = document.createElement('div');
+            div.className = 'log ' + type;
+            div.textContent = msg;
+            statusDiv.appendChild(div);
+            console.log(msg);
+        }
+        
+        // Test immediately - no delay needed for sync script
+        function test() {
+            try {
+                log('=== FFmpeg WASM Load Test ===');
+                log(`Location: ${window.location.origin}`);
+                log(`Time: ${new Date().toLocaleTimeString()}`);
+                log('');
+                
+                log('1. Checking for FFmpegWASM global...');
+                if (typeof FFmpegWASM === 'undefined') {
+                    throw new Error('FFmpegWASM is not defined - local file must have failed to load');
+                }
+                log('✓ FFmpegWASM global exists');
+                log(`   FFmpegWASM type: ${typeof FFmpegWASM}`);
+                log(`   FFmpegWASM keys: ${Object.keys(FFmpegWASM).slice(0, 5).join(', ')}...`);
+                log('');
+                
+                log('2. Checking for FFmpegWASM.FFmpeg class...');
+                if (!FFmpegWASM.FFmpeg) {
+                    throw new Error('FFmpegWASM.FFmpeg class not found');
+                }
+                log('✓ FFmpegWASM.FFmpeg class exists');
+                log('');
+                
+                log('3. Checking for FFmpegUtil.fetchFile function...');
+                if (typeof FFmpegUtil === 'undefined') {
+                    throw new Error('FFmpegUtil is not defined - ffmpeg-util.js must have failed to load');
+                }
+                if (!FFmpegUtil.fetchFile) {
+                    throw new Error('FFmpegUtil.fetchFile not found');
+                }
+                log('✓ FFmpegUtil.fetchFile exists');
+                log('');
+                
+                log('4. Creating FFmpeg instance...');
+                const ff = new FFmpegWASM.FFmpeg();
+                log('✓ FFmpeg instance created successfully');
+                log('');
+                
+                log('5. Checking instance methods...');
+                const methods = ['load', 'exec', 'writeFile', 'readFile'];
+                for (const method of methods) {
+                    if (!ff[method]) {
+                        throw new Error(`Method ${method} not found`);
+                    }
+                    log(`   ✓ ff.${method}() available`);
+                }
+                log('');
+                
+                log('========================================');
+                log('✅ SUCCESS - FFmpeg WASM is ready!');
+                log('========================================');
+                log('');
+                log('Next: Try the main app at /');
+                log('1. Go to http://localhost:5001');
+                log('2. Open browser console (F12 → Console tab)');
+                log('3. Enter a name and click "Generate My Video"');
+                
+            } catch (e) {
+                log('❌ ERROR: ' + e.message, 'error');
+                log('', 'warning');
+                log('Debugging info:', 'warning');
+                log(`typeof FFmpegWASM: ${typeof FFmpegWASM}`, 'warning');
+                log(`typeof FFmpegUtil: ${typeof FFmpegUtil}`, 'warning');
+                log(`typeof window.FFmpegWASM: ${typeof window.FFmpegWASM}`, 'warning');
+                log(`typeof window.FFmpegUtil: ${typeof window.FFmpegUtil}`, 'warning');
+                
+                const keys = Object.keys(window).filter(k => 
+                    k.toLowerCase().includes('ffmpeg') || k === 'FFmpegWASM' || k === 'FFmpegUtil'
+                );
+                log(`Window keys with 'ffmpeg': ${keys.join(', ') || 'NONE'}`, 'warning');
+                
+                console.error('Full error:', e);
+            }
+        }
+        
+        // Run immediately - the script is not async, so FFmpeg should be defined
+        test();
+    </script>
+</body>
+</html>
