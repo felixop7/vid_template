@@ -2,7 +2,16 @@ import os
 import uuid
 import sqlite3
 from datetime import datetime
-from flask import Flask, request, send_file, render_template, redirect, url_for, session, jsonpath_ng
+
+# ── Make sure the static ffmpeg we installed during build is on PATH ──────────
+# Render's gunicorn process may not inherit the build-time PATH, so we patch it
+# explicitly before importing MoviePy (which probes for ffmpeg at import time).
+_local_bin = os.path.join(os.path.expanduser("~"), ".local", "bin")
+if _local_bin not in os.environ.get("PATH", ""):
+    os.environ["PATH"] = _local_bin + os.pathsep + os.environ.get("PATH", "")
+# ─────────────────────────────────────────────────────────────────────────────
+
+from flask import Flask, request, send_file, render_template, redirect, url_for, session, jsonify
 from moviepy import VideoFileClip, TextClip, CompositeVideoClip
 
 app = Flask(__name__)
@@ -20,9 +29,9 @@ ADMIN_PASSWORD   = os.environ.get("ADMIN_PASSWORD", "galkot2025")
 # Name overlay position — tweak these to hit your Canva "name tag" area.
 # (0,0) = top-left corner of the 1080×1920 frame.
 # Example: x=540, y=960 places text dead-centre vertically and horizontally.
-NAME_X           = 198         # horizontal centre (auto-centred with method="caption")
-NAME_Y           = 1462         # vertical position  → move UP by decreasing, DOWN by increasing
-NAME_FONTSIZE    = 52
+NAME_X           = 540          # horizontal centre (auto-centred with method="caption")
+NAME_Y           = 1200         # vertical position  → move UP by decreasing, DOWN by increasing
+NAME_FONTSIZE    = 90
 NAME_COLOR       = "white"
 NAME_DURATION    = None         # None = match the template video duration automatically
 
