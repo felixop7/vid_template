@@ -17,7 +17,7 @@ if _local_bin not in os.environ.get("PATH", ""):
 from flask import Flask, request, send_file, render_template, redirect, session, jsonify, Response
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key-in-production")
+app.secret_key = os.environ.get("SECRET_KEY", " ")
 
 # ─────────────────────────────────────────────
 # CONFIG
@@ -26,7 +26,7 @@ TEMPLATE_VIDEO = "assets/invite_template.mp4"
 FONT_FILE      = "assets/myfont.ttf"
 OUTPUT_DIR     = "generated"
 DB_PATH        = "data/names.db"
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "galkot2025")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", " ")
 ADMIN_ROUTE    = "/admin-dashboard-galkot"
 
 NAME_Y        = 1460   # move UP = decrease, move DOWN = increase (canvas is 1920px tall)

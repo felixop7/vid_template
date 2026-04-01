@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Get Your Invite Video</title>
+  <title>Galkot Music & Food Festival</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
@@ -77,6 +77,18 @@
       font-family: 'Playfair Display', serif;
       font-size: clamp(2rem, 6vw, 2.8rem);
       font-weight: 900; line-height: 1.12;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--text) 30%, var(--gold2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    h2.card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      font-weight: 700;
+      line-height: 1.2;
       margin-bottom: 12px;
       background: linear-gradient(135deg, var(--text) 30%, var(--gold2));
       -webkit-background-clip: text;
@@ -180,6 +192,76 @@
 
     .divider { height: 1px; background: var(--border); margin: 36px 0 28px; }
 
+    /* ── Header Section ── */
+    .header {
+      position: relative; z-index: 1;
+      text-align: center;
+      margin-bottom: 52px;
+      animation: fadeDown .8s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    @keyframes fadeDown {
+      from { opacity:0; transform:translateY(-28px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 48px;
+      margin-bottom: 32px;
+    }
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      animation: bounce 3s ease-in-out infinite;
+      filter: drop-shadow(0 4px 12px rgba(212, 168, 67, 0.2));
+    }
+
+    .logo-left {
+      animation-delay: 0s;
+    }
+
+    .logo-right {
+      animation-delay: 0.15s;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); opacity: 1; }
+      50% { transform: translateY(-12px); opacity: 0.9; }
+    }
+
+    .festival-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 8vw, 3.8rem);
+      font-weight: 900;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 50%, var(--text) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0 0 12px;
+      text-shadow: 0 4px 20px rgba(0,0,0,.3);
+    }
+
+    .festival-title .accent {
+      color: var(--gold2);
+      display: block;
+    }
+
+    .festival-tagline {
+      font-size: 1.1rem;
+      color: var(--gold);
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 16px;
+    }
+
     .footer-note {
       font-size: .78rem; color: var(--muted);
       text-align: center; line-height: 1.7;
@@ -187,11 +269,41 @@
 
     @media (max-width: 480px) {
       .card { padding: 40px 24px 36px; border-radius: 20px; }
+      
+      .header { margin-bottom: 40px; }
+      
+      .logo-container {
+        gap: 32px;
+        margin-bottom: 24px;
+      }
+      
+      .logo {
+        width: 90px;
+        height: 90px;
+      }
+      
+      .festival-title {
+        font-size: clamp(1.8rem, 6vw, 2.8rem);
+      }
+      
+      h2.card-title {
+        font-size: clamp(1.3rem, 4vw, 1.8rem);
+      }
     }
   </style>
 </head>
 <body>
   <div class="glow"></div>
+
+  <!-- Header with Festival Title -->
+  <div class="header">
+    <div class="logo-container">
+      <img src="/static/LORD.svg" alt="LORD Logo" class="logo logo-left" />
+      <img src="/static/galkot.png" alt="Galkot Logo" class="logo logo-right" />
+    </div>
+    <h1 class="festival-title">Galkot<br><span class="accent">Music & Food Festival</span></h1>
+    <p class="festival-tagline">Be Part of the Celebration</p>
+  </div>
 
   <div id="overlay">
     <div class="spinner"></div>
@@ -202,12 +314,12 @@
 
   <div class="card">
     <span class="badge">✦ Exclusive Invite</span>
-    <h1>Your Personal<br>Invite Video</h1>
-    <p class="subtitle">Enter your name and we'll generate a personalised invitation video — ready to share on Instagram Stories.</p>
+    <h2 class="card-title">Generate Your Invite Video</h2>
+    <p class="subtitle">Enter your name and we'll create a personalised invitation video — ready to share instantly.</p>
 
     <form id="invite-form">
       <label for="name">Your Full Name</label>
-      <input type="text" id="name" name="name" placeholder="e.g. Priya Sharma"
+      <input type="text" id="name" name="name" placeholder="e.g. Roshan Sahani"
              maxlength="60" autocomplete="name" required />
       <div id="error-msg"></div>
       <button type="submit" id="submit-btn">✦ Generate My Video</button>
